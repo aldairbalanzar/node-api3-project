@@ -48,6 +48,13 @@ server.post('/api/users', validateUser, (req, res) => {
   :res.status(400).json({ message: "error posting this user." })
 });
 
+server.delete('/api/users/:id', validateUserId, (req, res) => {
+  const userId = req.params.id
+  Users.remove(userId)
+  .then(user => res.status(200).json({ message: "user deleted."}, user))
+  .catch(err => res.status(400).json({ errorMessage: "could not find that user"}))
+});
+
 server.get('/api/users/:id/posts', validateUserId, (req, res) => {
   const id = req.params.id;
   Users.getUserPosts(id)
@@ -59,17 +66,14 @@ server.get('/api/users/:id/posts', validateUserId, (req, res) => {
 
 server.post('/api/users/:id/posts', validateUserId, validatePost, (req, res) => {
   const id = req.params.id;
-  const newPost = req.body;
+  const newPost = {
+    user_id: id,
+    text: req.body.text
+  }
 
-  Users.getById(id)
-  .then(Posts.insert(newPost)
-    .then(post => res.status(200).json(post))
-    .catch(err => res.status(400).json({ errorMessage: "error trying to post that post."})))
-  .catch(err => res.status(400).json({ errorMessage: "error trying to find that user."}))
-  
-  // Posts.insert(req.body)
-  // .then(post => res.status(201).json(post))
-  // .catch(err => res.status(400).json({ errorMessage: "error trying to post that post."}))
+  Posts.insert(newPost)
+    .then(res.status(200).json(newPost))
+    .catch(err => res.status(400).json({ errorMessage: "error trying to post that post."}))
 })
 
 // //custom middleware
