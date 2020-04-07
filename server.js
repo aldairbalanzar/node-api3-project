@@ -1,27 +1,72 @@
 const express = require('express');
-const server = express();
 const helmet = require('helmet');
+const server = express();
 
-server.use(express.json());
+const Users = require('./users/userDb');
+
+
+
 server.use(express());
 server.use(helmet());
 server.use(logger);
+server.use(express.json());
 
 server.get('/', (req, res) => {
-  res.status(200).json({ message: "Let's write some middleware"});
+  // res.status(200).json({ message: "Let's write some middleware" });
   res.send(`<h2>Let's write some middleware!</h2>`);
 });
 
+server.get('/api/users', (req, res) => {
+  Users.get(req.params)
+  .then(users => {
+    users
+    ? res.status(200).json(users)
+    : res.status(400).json({message: "could not find list of users."})
+  })
+  // res.status(200).json({ message: "route that sends back list of users." })
+})
+
 server.get('/api/users/:id', validateUserId, (req, res) => {
-  res.status(200).json({ message: "route that expects an id" })
+  const id = req.params.id;
+  Users.getById(id)
+  .then(user => {
+    user
+    ?res.status(200).json(user)
+    : res.status(400).json({message: "could not find user with that id."})
+  })
 });
 
-server.post('/api/users/:id', validateUser, (req, res) => {
-  res.status(200).json({ message: "route that accepts post requests and creates a user"})
+server.post('/api/users', validateUser, (req, res) => {
+  const newUser = req.body;
+  console.log(newUser);
+  newUser
+  ? Users.insert(newUser)
+  .then(post => {
+    res.status(200).json(newUser)
+  })
+  :res.status(400).json({ message: "error posting this user." })
 });
 
 server.get('/api/users/:id/posts', (req, res) => {
-  
+  const id = req.params;
+
+  id
+  ?Users.getUserPosts(id)
+   .then(posts => {
+    console.log(posts);
+    res.status(200).json(posts)
+  })
+  :res.status(400).json({ message: "could not find any posts for that user."})
+ 
+  // id
+  // ?Users.getById(id)
+  //  .then(user => {
+  //    Users.getUserPosts(user.id)
+  //    .then(posts => {
+  //      res.status(200).json(posts)
+  //    })
+  // })
+  // :res.status(400).json({ message: "error getting user posts."})
 })
 
 server.post('/api/users/:id/posts', validatePost, (req, res) => {
