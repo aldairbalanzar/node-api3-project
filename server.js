@@ -3,6 +3,7 @@ const helmet = require('helmet');
 const server = express();
 
 const Users = require('./users/userDb');
+const Posts  = require('./posts/postDb');
 
 
 
@@ -47,30 +48,28 @@ server.post('/api/users', validateUser, (req, res) => {
   :res.status(400).json({ message: "error posting this user." })
 });
 
-server.get('/api/users/:id/posts', (req, res) => {
-  const id = req.params;
-
-  id
-  ?Users.getUserPosts(id)
+server.get('/api/users/:id/posts', validateUserId, (req, res) => {
+  const id = req.params.id;
+  Users.getUserPosts(id)
    .then(posts => {
     console.log(posts);
     res.status(200).json(posts)
   })
-  :res.status(400).json({ message: "could not find any posts for that user."})
- 
-  // id
-  // ?Users.getById(id)
-  //  .then(user => {
-  //    Users.getUserPosts(user.id)
-  //    .then(posts => {
-  //      res.status(200).json(posts)
-  //    })
-  // })
-  // :res.status(400).json({ message: "error getting user posts."})
 })
 
-server.post('/api/users/:id/posts', validatePost, (req, res) => {
-  res.status(200).json({ message: "route that accepts post requests and creates a post."})
+server.post('/api/users/:id/posts', validateUserId, validatePost, (req, res) => {
+  const id = req.params.id;
+  const newPost = req.body;
+
+  Users.getById(id)
+  .then(Posts.insert(newPost)
+    .then(post => res.status(200).json(post))
+    .catch(err => res.status(400).json({ errorMessage: "error trying to post that post."})))
+  .catch(err => res.status(400).json({ errorMessage: "error trying to find that user."}))
+  
+  // Posts.insert(req.body)
+  // .then(post => res.status(201).json(post))
+  // .catch(err => res.status(400).json({ errorMessage: "error trying to post that post."}))
 })
 
 // //custom middleware
