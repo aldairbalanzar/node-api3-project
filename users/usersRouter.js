@@ -1,5 +1,6 @@
 const express = require("express");
 const router = express.Router();
+const cors = require("cors");
 
 const Users = require('./userDb');
 const Posts  = require('../posts/postDb');
@@ -40,14 +41,14 @@ router.put('/:id', validateUserId, validateUser, (req, res) => {
     const updatedUser = req.body;
 
     Users.update(userId, updatedUser)
-    .then(res.status(200))
+    .then(res.status(200).json(updatedUser))
     .catch(res.status(400).json({ message: "error trying to update user data." }))
 });
   
 router.delete('/:id', validateUserId, (req, res) => {
 const userId = req.params.id
 Users.remove(userId)
-.then(user => res.status(200).json({ message: "user deleted."}, user))
+.then(user => res.status(200).json({ message: "user deleted."}))
 .catch(err => res.status(400).json({ errorMessage: "could not find that user"}))
 });
 
