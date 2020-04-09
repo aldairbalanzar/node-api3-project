@@ -10,8 +10,8 @@ server.use(logger);
 server.use(express.json());
 
 server.get('/', (req, res) => {
-  // res.status(200).json({ message: "Let's write some middleware" });
-  res.send(`<h2>Let's write some middleware!</h2>`);
+  const message = process.env.MESSAGE || "hello from localhost"
+  res.status(200).json({ api: "node_api3_project", message  });
 });
 
 server.use('/api/users', usersRouter);
